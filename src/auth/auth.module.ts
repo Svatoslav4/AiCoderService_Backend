@@ -5,6 +5,7 @@ import { AuthController } from './auth.controller.js'
 import { AuthService } from './auth.service.js'
 import { GithubStrategy } from './strategies/github.strategies.js'
 import { JwtStrategy } from './strategies/jwt.strategies.js'
+import { RefreshTokenService } from './refresh-token.service.js'
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { JwtStrategy } from './strategies/jwt.strategies.js'
     AuthService,
     GithubStrategy,
     JwtStrategy,
+    RefreshTokenService
   ],
 
   exports: [AuthService],
