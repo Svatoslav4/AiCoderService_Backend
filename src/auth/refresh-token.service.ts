@@ -30,14 +30,39 @@ export class RefreshTokenService {
     }
 
     async findValidToken(token: string) {
-        return this.prisma.refreshToken.findFirst({
+        const tokenHash = this.hashToken(token)
+
+        const refreshToken = await this.prisma.refreshToken.findUnique({
             where: {
-                tokenHash: this.hashToken(token),
-                revokedAt: null,
-                expiresAt: { gt: new Date() },
-            },
-            include: { user: true },
+                tokenHash
+            }
         })
+
+        if(!refreshToken) {
+            return null
+        }
+
+        if(refreshToken.revokedAt) {
+            return null
+        }
+
+        if(refreshToken.expiresAt < new Date()) {
+            return null
+        }
+
+        return refreshToken
     }
 
+    async revoke(token: string) {
+        const tokenHash = this.hashToken(token)
+        await this.prisma.refreshToken.updateMany({
+            where: {
+                tokenHash,
+                revokedAt: null
+            },
+            data: {
+                revokedAt: new Date()
+            }
+        })
+    }
 } 
