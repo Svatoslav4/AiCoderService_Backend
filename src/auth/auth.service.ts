@@ -1,14 +1,12 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service.js";
+import { Injectable } from "@nestjs/common"
+import { PrismaService } from "../prisma/prisma.service.js"
 import { JwtService } from '@nestjs/jwt'
-import { GithubUser } from "./types/github-user.type.js";
+import { RefreshTokenService } from "./refresh-token.service.js"
+import { GithubUser } from "./types/github-user.type.js"
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly prisma: PrismaService,private readonly jwtService: JwtService,private readonly refreshTokenService: RefreshTokenService ) {}
 
   async findUserByGithubId(githubId: string) {
     return this.prisma.user.findUnique({
@@ -77,5 +75,13 @@ export class AuthService {
         expiresIn: '15m',
       },
     )
+  }
+
+  async generateRefreshToken(userId: string) {
+    return this.refreshTokenService.create(userId)
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+      const storedToken = await this.refreshTokenService.findValidToken(refreshToken)
   }
 }
