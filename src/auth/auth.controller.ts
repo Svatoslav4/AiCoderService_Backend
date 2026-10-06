@@ -14,7 +14,9 @@ export class AuthController {
     @UseGuards(AuthGuard('github'))
     async githubCallback(@Req() req: GithubRequest) {
         const user = await this.authService.validateGithubUser(req.user)
-        const token = await this.authService.generateAccessToken(user)
-        return {accessToken: token}
+        const accessToken = await this.authService.generateAccessToken({id: user.id,email: user.email})
+        const refreshToken = await this.authService.generateRefreshToken(user.id)
+
+        return{accessToken,refreshToken}
     }
 }
