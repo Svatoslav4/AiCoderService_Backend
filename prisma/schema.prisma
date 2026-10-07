@@ -12,7 +12,7 @@ model User {
   email     String   @unique
 
   username  String?
-  avatarUrl String
+  avatarUrl String?
 
   githubId String? @unique
   githubUsername String?
