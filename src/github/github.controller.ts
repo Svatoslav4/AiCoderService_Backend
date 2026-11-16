@@ -1,7 +1,7 @@
 
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { GithubService } from './github.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { GithubService } from './github.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 
 @Controller('github')
 @UseGuards(JwtAuthGuard)

@@ -1,4 +1,10 @@
-import {Injectable,InternalServerErrorException,ServiceUnavailableException,} from '@nestjs/common';
+
+import {
+  Injectable,
+  InternalServerErrorException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from 'octokit';
@@ -24,9 +30,21 @@ export class GithubService {
       'GITHUB_INSTALLATION_ID',
     );
 
-    if (!appId || !privateKeyPath || !installationId) {
+    if (!appId) {
       throw new InternalServerErrorException(
-        'GitHub App configuration is missing',
+        'GITHUB_APP_ID is missing',
+      );
+    }
+
+    if (!privateKeyPath) {
+      throw new InternalServerErrorException(
+        'GITHUB_PRIVATE_KEY_PATH is missing',
+      );
+    }
+
+    if (!installationId || !/^\d+$/.test(installationId)) {
+      throw new InternalServerErrorException(
+        'GITHUB_INSTALLATION_ID is missing or invalid',
       );
     }
 
@@ -39,40 +57,48 @@ export class GithubService {
       );
     } catch {
       throw new InternalServerErrorException(
-        'GitHub App private key could not be read',
+        'GitHub App private key file could not be read',
       );
     }
 
-    try {
-      return new Octokit({
-        authStrategy: createAppAuth,
-        auth: {
-          appId,
-          privateKey,
-          installationId,
-        },
-      });
-    } catch {
+    const formattedPrivateKey = privateKey
+      .replace(/\\n/g, '\n')
+      .trim();
+
+    if (
+      !formattedPrivateKey.startsWith('-----BEGIN ') ||
+      !formattedPrivateKey.includes('PRIVATE KEY-----') ||
+      !formattedPrivateKey.includes('-----END ')
+    ) {
       throw new InternalServerErrorException(
-        'Could not initialize GitHub App client',
+        'GitHub App private key has an invalid PEM format',
       );
     }
+
+    return new Octokit({
+      authStrategy: createAppAuth,
+      auth: {
+        appId,
+        privateKey: formattedPrivateKey,
+        installationId: Number(installationId),
+      },
+    });
   }
 
   async getRepositories() {
     try {
       const octokit = await this.createInstallationClient();
 
-      const response =
-        await octokit.request(
-          'GET /installation/repositories',
-          {
-            per_page: 100,
-          },
-        );
+      const response = await octokit.request(
+        'GET /installation/repositories',
+        {
+          per_page: 100,
+        },
+      );
 
       return {
         totalCount: response.data.total_count,
+
         repositories: response.data.repositories.map(
           (repository) => ({
             id: repository.id,
@@ -85,11 +111,32 @@ export class GithubService {
         ),
       };
     } catch (error: unknown) {
-      if (
-        error instanceof InternalServerErrorException
-      ) {
+      if (error instanceof InternalServerErrorException) {
         throw error;
       }
+
+      const githubError = error as {
+        message?: string;
+        status?: number;
+        response?: {
+          data?: unknown;
+        };
+      };
+
+      console.error(
+        'GitHub API Error:',
+        githubError.message,
+      );
+
+      console.error(
+        'GitHub Status:',
+        githubError.status,
+      );
+
+      console.error(
+        'GitHub Response:',
+        githubError.response?.data,
+      );
 
       throw new ServiceUnavailableException(
         'Could not fetch repositories from GitHub',
