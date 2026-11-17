@@ -3,3 +3,5 @@ allowBuilds:
   '@prisma/engines': false
   '@scarf/scarf': false
   prisma: false
+  protobufjs: false
+  '@swc/core': false

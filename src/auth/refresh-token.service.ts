@@ -52,10 +52,9 @@ export class RefreshTokenService {
 
         return refreshToken
     }
-
-    async revoke(token: string) {
+    async revoke(token: string): Promise<boolean> {
         const tokenHash = this.hashToken(token)
-        await this.prisma.refreshToken.updateMany({
+        const result = await this.prisma.refreshToken.updateMany({
             where: {
                 tokenHash,
                 revokedAt: null
@@ -64,5 +63,7 @@ export class RefreshTokenService {
                 revokedAt: new Date()
             }
         })
+
+        return result.count > 0
     }
 } 

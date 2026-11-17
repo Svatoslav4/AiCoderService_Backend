@@ -18,6 +18,22 @@ export class UsersService {
         })
     }
 
+    /** Профіль для фронтенду (/users/me) */
+    async getProfile(id: string) {
+        return this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                avatarUrl: true,
+                githubId: true,
+                githubUsername: true,
+                createdAt: true,
+            },
+        })
+    }
+
     async findByEmail(email: string) {
         return this.prisma.user.findUnique({
             where: {

@@ -1,17 +1,20 @@
-import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from "./app.module.js";
+
+import { AppModule } from './app.module.js';
+import { configureApp } from './app.setup.js';
 
 async function startServer() {
-  const app = await NestFactory.create(AppModule)
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  // rawBody потрібен для перевірки підпису GitHub вебхуків
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
-  await app.listen(process.env.PORT ?? 3000)
+  configureApp(app);
+
+  const port = process.env.PORT ?? 3000;
+
+  await app.listen(port);
+
+  console.log(`Server running: http://localhost:${port}/api`);
+  console.log(`Swagger: http://localhost:${port}/docs`);
 }
-startServer()
+
+void startServer();

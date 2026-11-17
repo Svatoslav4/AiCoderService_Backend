@@ -17,10 +17,13 @@ model User {
   githubId String? @unique
   githubUsername String?
 
+  githubInstallationId Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   refreshTokens RefreshToken[]
+  reviews       PullRequestReview[]
 }
 
 model RefreshToken {
@@ -34,4 +37,32 @@ model RefreshToken {
   revokedAt DateTime?
 
   createdAt DateTime @default(now())
+}
+
+model PullRequestReview {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  owner      String
+  repo       String
+  pullNumber Int
+  pullTitle  String?
+
+  provider String
+  model    String
+
+  score          Int
+  summary        String
+  issues         Json
+  positivePoints Json
+
+  totalFiles    Int
+  analyzedFiles Int
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, owner, repo, pullNumber])
 }
