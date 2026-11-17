@@ -32,7 +32,8 @@ describe('Auth (integration)', () => {
       expect(location.searchParams.get('redirect_uri')).toBe(
         'http://localhost:3000/api/auth/github/callback',
       );
-      expect(location.searchParams.get('scope')).toBe('user:email');
+      // GitHub App ігнорує scopes, а 'user:email' змушує passport ходити в /user/emails (403)
+      expect(location.searchParams.has('scope')).toBe(false);
     });
   });
 

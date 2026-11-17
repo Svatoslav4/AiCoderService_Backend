@@ -1,10 +1,6 @@
 import { type INestApplication, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-/**
- * Спільне налаштування застосунку — використовується в main.ts і в інтеграційних тестах,
- * щоб тести перевіряли ту саму конфігурацію, що й прод.
- */
 export function configureApp(app: INestApplication) {
   app.setGlobalPrefix('api');
 
